@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<!--<script src="../build/roslib.js"></script>-->
+<script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<script>
+        // Connecting to ROS
+        // -----------------
+
+
+        var controller_ros = new ROSLIB.Ros();
+
+        // If there is an error on the backend, an 'error' emit will be emitted.
+        controller_ros.on('error', function(error) {
+        document.getElementById('status').innerHTML = 'Error';
+        //document.getElementById('error').style.display = 'inline';
+        console.log(error);
+        });
+
+        // Find out exactly when we made a connection.
+        controller_ros.on('connection', function() {
+        console.log('Connection made!');
+        document.getElementById('status').innerHTML = 'Connected';
+        //document.getElementById('connected').style.display = 'inline';
+        });
+
+        controller_ros.on('close', function() {
+        console.log('Connection closed.');
+        document.getElementById('status').innerHTML = 'Closed';
+        //document.getElementById('closed').style.display = 'inline';
+        });
+
+        // Create a connection to the rosbridge WebSocket server.
+      ////controller_ros.connect('ws://192.168.50.112:9090');
+      controller_ros.connect('ws://10.60.3.186:9090');
+      // controller_ros.connect('ws://localhost:9090');
+
+        var JoyListener = new ROSLIB.Topic({
+        ros : controller_ros,
+        name : '/joy',
+        messageType : 'sensor_msgs/Joy'
+        });
+
+        var joy_timestamp;
+        var joy_axes0, joy_axes1, joy_axes2, joy_axes3, joy_axes4, joy_axes5, joy_axes6, joy_axes7, joy_axes8, joy_axes9, joy_axes10, joy_axes11, joy_axes12, joy_axes13, joy_axes14;
+        var joy_buttons0, joy_buttons1, joy_buttons2, joy_buttons3, joy_buttons4, joy_buttons5, joy_buttons6, joy_buttons7, joy_buttons8, joy_buttons9, joy_buttons10, joy_buttons11, joy_buttons12, joy_buttons13, joy_buttons14;
+
+        var linear_x, linear_z;
+
+        JoyListener.subscribe(function(message) {
+                                joy_timestamp = message.header.stamp;
+                joy_axes0 = message.axes[0];
+                joy_buttons0 = message.buttons[0];
+                joy_axes1 = message.axes[1];
+                joy_buttons1 = message.buttons[1];
+                joy_axes2 = message.axes[2];
+                joy_buttons2 = message.buttons[2];
+                joy_axes3 = message.axes[3];
+                joy_buttons3 = message.buttons[3];
+                joy_axes4 = message.axes[4];
+                joy_buttons4 = message.buttons[4];
+                joy_axes5 = message.axes[5];
+                joy_buttons5 = message.buttons[5];
+                joy_axes6 = message.axes[6];
+                joy_buttons6 = message.buttons[6];
+                joy_axes7 = message.axes[7];
+                joy_buttons7 = message.buttons[7];
+                joy_axes8 = message.axes[8];
+                joy_buttons8 = message.buttons[8];
+                joy_axes9 = message.axes[9];
+                joy_buttons9 = message.buttons[9];
+                joy_axes10 = message.axes[10];
+                joy_buttons10 = message.buttons[10];
+                joy_axes11 = message.axes[11];
+                joy_buttons11 = message.buttons[11];
+                joy_axes12 = message.axes[12];
+                joy_buttons12 = message.buttons[12];
+                joy_axes13 = message.axes[13];
+                joy_buttons13 = message.buttons[13];
+
+                linear_x = 0.6*joy_axes1;
+                angular_z = 0.9*joy_axes2;
+                document.getElementById('robot_axes1').innerHTML = message.axes[1];
+                document.getElementById('robot_axes2').innerHTML = message.axes[2];
+                // document.getElementById('robot_buttons0').innerHTML = message.buttons[0];
+
+        });
+
+        function timer_talker(){
+                var ysj_talker = new ROSLIB.Topic({
+                ros : controller_ros,
+                name : '/ysj_pub',
+                messageType : 'std_msgs/String'
+                });
+
+                var ysj_talker_value = new ROSLIB.Message({
+                data : 'YSJ'
+                });
+                ysj_talker.publish(ysj_talker_value);
+        }
+
+
+
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
+                // Connecting to ROS
+        // -----------------
+        var robot_ros = new ROSLIB.Ros();
+
+        // If there is an error on the backend, an 'error' emit will be emitted.
+        robot_ros.on('error', function(error) {
+        document.getElementById('robot_status').innerHTML = 'Error';
+        //document.getElementById('error').style.display = 'inline';
+        console.log(error);
+        });
+
+        // Find out exactly when we made a connection.
+        robot_ros.on('connection', function() {
+        console.log('Connection made!');
+        document.getElementById('robot_status').innerHTML = 'Connected';
+        //document.getElementById('connected').style.display = 'inline';
+        });
+
+        robot_ros.on('close', function() {
+        console.log('Connection closed.');
+        document.getElementById('robot_status').innerHTML = 'Closed';
+        //document.getElementById('closed').style.display = 'inline';
+        });
+
+        //ysj_ros
+        // robot_ros.connect('ws://192.168.50.154:9090');
+        //////robot_ros.connect('ws://223.171.61.246:9090');
+        //robot_ros.connect('ws://223.171.62.1:9090');
+       robot_ros.connect('ws://10.60.3.86:9090');
+
+        // var videoimg, img_header, img_format;
+
+        var videoListener = new ROSLIB.Topic({
+        ros : controller_ros,
+        // name : 'main_camera/image_raw/compressed',
+        name : 'usb_cam/image_raw/compressed',
+        messageType : 'sensor_msgs/CompressedImage'
+        });
+        var videoPublisher = new ROSLIB.Topic({
+        ros : robot_ros,
+        name : 'main_camera/image_raw/compressed',
+        // name : 'imageFromRobot/CompressedImage',
+        messageType : 'sensor_msgs/CompressedImage'
+        });
+
+        videoListener.subscribe(function(message) {
+
+                document.getElementById('vImage').src = "data:image/jpg;base64," + message.data;
+                                // img_header = message.header;
+                                // img_format = message.format;
+                                // videoimg = message.data;
+                                videoPublisher.publish(message);
+
+        });
+
+
+
+
+        var CmdvelListener = new ROSLIB.Topic({
+                ros : robot_ros,
+                name : '/cmd_vel',
+                messageType : 'geometry_msgs/Twist'
+        })
+
+        var CmdvelPublisher =new ROSLIB.Topic({
+                ros : controller_ros,
+                name : '/cmd_vel',
+                messageType : 'geometry_msgs/Twist'
+
+        });
+
+        //CmdvelListener.subscribe(function(message) {
+          //      CmdvelPublisher.publish(message);
+        //});
+
+        //linear_x = 1.0
+        //angular_z = 1.0
+
+        var robot_velpub_value = new ROSLIB.Message({
+        linear : {
+                x : 1.0,
+                y : 0.0,
+                z : 0.0
+                },
+        angular : {
+                x : 0.0,
+                y : 0.0,
+                z : 1.0
+                }
+
+                });
+
+        CmdvelPublisher.publish(robot_velpub_value);
+
+        var md_driver_statusListener = new ROSLIB.Topic({
+                ros : robot_ros,
+                name : '/md_driver_status',
+                messageType : 'std_msgs/UInt16'
+        })
+
+        var md_driver_statusPublisher =new ROSLIB.Topic({
+                ros : controller_ros,
+                name : '/md_driver_status',
+                messageType : 'std_msgs/UInt16'
+
+        });
+
+        md_driver_statusListener.subscribe(function(message) {
+                md_driver_statusPublisher.publish(message);
+        });
+
+
+        var IMUListener = new ROSLIB.Topic({
+        ros : robot_ros,
+        name : '/imu/data',
+        messageType : 'sensor_msgs/Imu'
+        });
+
+        var IMUListener2 = new ROSLIB.Topic({
+        ros : robot_ros,
+        name : '/imu_return/data',
+        messageType : 'sensor_msgs/Imu'
+        });
+
+        var buf_seq, buf_stamp_secs, buf_stamp_nsecs, buf_frame_id;
+        var buf_orientation_x, buf_orientation_y, buf_orientation_z, buf_orientation_w;
+//        var orientation_covariance[~]
+        var buf_angular_velocity_x, buf_angular_velocity_y, buf_angular_velocity_z
+//        var angular_velocity_covariance[~]
+        var buf_linear_acceleration_x, buf_linear_acceleration_y, buf_linear_acceleration_z
+//        var linear_acceleration_covariance[~]
+
+        IMUListener.subscribe(function(message) {
+
+                document.getElementById('IMU_linear_velX').innerHTML = message.linear_acceleration.x;
+                document.getElementById('IMU_linear_velY').innerHTML = message.linear_acceleration.y;
+                document.getElementById('IMU_linear_velZ').innerHTML = message.linear_acceleration.z;
+        /*
+                buf_seq       = message.header.seq;
+                buf_stamp_secs    = message.header.stamp.secs;
+                buf_stamp_nsecs   = message.header.stamp.stamp_nsecs;
+                buf_frame_id      = message.header.frame_id;
+
+                buf_orientation_x = message.orientation.x;
+                buf_orientation_y = message.orientation.y;
+                buf_orientation_z = message.orientation.z;
+                buf_orientation_w = message.orientation.w;
+
+                buf_angular_velocity_x = message.angular_velocity.x;
+                buf_angular_velocity_y = message.angular_velocity.y;
+                buf_angular_velocity_z = message.angular_velocity.z;
+
+                buf_linear_acceleration_x = message.linear_acceleration.x;
+                buf_linear_acceleration_y = message.linear_acceleration.y;
+                buf_linear_acceleration_z = message.linear_acceleration.z;
+
+                var controller_imupub_value = new ROSLIB.Message({
+                        header : {
+                                frame_id   : buf_frame_id
+                        },
+                        orientation : {
+                                x : buf_orientation_x,
+                                y : buf_orientation_y,
+                                z : buf_orientation_z,
+                                w : buf_orientation_w,
+                        },
+                        orientation_covariance : [0,0,0,0,0,0,0,0,0],
+                        angular_velocity : {
+                                x : buf_angular_velocity_x,
+                                y : buf_angular_velocity_y,
+                                z : buf_angular_velocity_z,
+                        },
+                        angular_velocity_covariance  : [0,0,0,0,0,0,0,0,0],
+                        linear_acceleration : {
+                                x : buf_linear_acceleration_x,
+                                y : buf_linear_acceleration_y,
+                                z : buf_linear_acceleration_z,
+                        },
+                        linear_acceleration_covariance  : [0,0,0,0,0,0,0,0,0]
+                });
+                IMUListener2.publish(controller_imupub_value)
+*/
+        });
+
+
+
+
+        // Publish Data //
+
+        function robot_joyfunction(){
+                var robot_joypub = new ROSLIB.Topic({
+                ros : robot_ros,
+                name : '/joy',
+                messageType : 'sensor_msgs/Joy'
+                });
+
+                var robot_joypub_value = new ROSLIB.Message({
+                axes: [joy_axes0, joy_axes1, joy_axes2, joy_axes3, joy_axes4, joy_axes5, joy_axes6, joy_axes7, joy_axes8, joy_axes9, joy_axes10, joy_axes11, joy_axes12, joy_axes13],
+                buttons: [joy_buttons0, joy_buttons1, joy_buttons2, joy_buttons3, joy_buttons4, joy_buttons5, joy_buttons6, joy_buttons7, joy_buttons8, joy_buttons9, joy_buttons10, joy_buttons11, joy_buttons12, joy_buttons13]
+
+                });
+                robot_joypub.publish(robot_joypub_value);
+        }
+
+        function robot_velfunction(){
+                var robot_velpub_value = new ROSLIB.Message({
+                        linear : {
+                        x : linear_x,
+                        y : 0.0,
+                        z : 0.0
+                        },
+                        angular : {
+                        x : 0.0,
+                        y : 0.0,
+                        z : angular_z
+                        }
+
+                        });
+
+                var robot_velpub = new ROSLIB.Topic({
+                ros : controller_ros,
+                name : '/cmd_vel',
+                messageType : 'geometry_msgs/Twist'
+                });
+                robot_velpub.publish(robot_velpub_value);
+        }
+
+
+
+        // function robot_imgfunction(){
+ //             var robot_imgpub = new ROSLIB.Topic({
+ //             ros : controller_ros,
+ //             name : '/usb_cam/image_raw/compressed',
+ //             messageType : 'sensor_msgs/CompressedImage'
+ //             });
+
+ //             var robot_imgpub_value = new ROSLIB.Message({
+ //             header : img_header,
+ //             // format : img_format,
+ //             // data: videoimg
+
+ //             });
+ //             robot_imgpub.publish(robot_imgpub_value);
+ //     }
+
+
+
+</script>
+</head>
+
+<body>
+  <h1>KUDOS Web inspector Example</h1>
+
+  <div style="width:450px; height:390px; border:1px solid red; float:left;">
+
+  <img id="vImage" height="336" width="448">
+
+  <div id="statusIndicator">
+    <p>base6
+        Controller Connection status: <span id="status"></span>
+    </p>
+<!--
+    <p>base6
+        Robot Connection status: <span id="robot_status"></span>
+    </p>
+-->
+<!--
+    <p>
+        RobotPC- JoyAxes1 : <span id="robot_axes1"></span>
+    </p>
+
+    <p>
+        RobotPC- JoyAxes2 : <span id="robot_axes2"></span>
+    </p>
+-->
+  </div>
+</div>
+
+
+  <script>
+        window.onload = function(){
+                timer = setInterval(function(){
+                        robot_velfunction();
+                }, 10);  // -> ms
+        };
+
+
+  </script>
+
+  <div style="width:210px; height:390px; border:1px solid green; float:left;">
+
+  <canvas id="joy" style="border:5px dashed #BDBDBD"></canvas>
+  <script>
+    var joy = document.getElementById("joy");
+    joy.width = 200;
+    joy.height =200;
+    joy.addEventListener("touchstart", down);
+    joy.addEventListener("touchmove", move);
+    joy.addEventListener("touchend", up);
+    joy.addEventListener("mousedown", down);
+    joy.addEventListener("mousemove", move);
+    joy.addEventListener("mouseup", up);
+    var ctx = joy.getContext("2d");
+    ctx.lineWidth = 10;
+    clearBackground();
+    drawCircle(100, 100, 50, "rgb(255,000,051)");
+    var startX, startY, moveX, moveY;
+    var joyPos = joy.getBoundingClientRect();
+    var onTouch = false;
+    function down(event) {
+      try {
+        startX = Math.round(event.touches[0].clientX - joyPos.left);
+        startY = Math.round(event.touches[0].clientY - joyPos.top);
+      } catch{
+        startX = Math.round(event.clientX - joyPos.left);
+        startY = Math.round(event.clientY - joyPos.top);
+      }
+      onTouch = true;
+    }
+
+    var moveMax = 75;
+    var msgPrev = "s";
+    var msg = "s";
+    function move(event) {
+        linear_x = 0.0;
+        angular_z = 0.0;
+      if (onTouch) {
+        try {
+          moveX = Math.round(event.touches[0].clientX - joyPos.left) - startX;
+          moveY = Math.round(event.touches[0].clientY - joyPos.top) - startY;
+        } catch{
+          moveX = Math.round(event.clientX - joyPos.left) - startX;
+          moveY = Math.round(event.clientY - joyPos.top) - startY;
+        }
+
+        if (moveX > moveMax) moveX = moveMax;
+        else if (moveX < -moveMax) moveX = -moveMax;
+        if (moveY > moveMax) moveY = moveMax;
+        else if (moveY < -moveMax) moveY = -moveMax;
+
+        clearBackground();
+        drawCircle(100 + moveX, 100 + moveY, 50, "rgb(255,000,051)");
+
+        if (moveX >= 40) msg = "d";
+        else if (moveX <= -40) msg = "a";
+        else if (moveY <= -40) msg = "w";
+        else if (moveY >= 40) msg = "x";
+
+        if (msg != msgPrev) {
+          //send(msg);
+          msgPrev = msg;
+        }
+        linear_x = -1.25*(moveY/75);
+        angular_z = -2.0*(moveX/75);
+      }
+      else{
+        linear_x = 0.0;
+        angular_z = 0.0;
+      }
+
+    }
+
+    function up() {
+      clearBackground();
+      drawCircle(100, 100, 50, "rgb(255,000,051)");  //50
+      msg = "s";
+      msgPrev = "s";
+      onTouch = false;
+      send(msg);
+      linear_x = 0.0;
+      angular_z = 0.0;
+    }
+
+    function send(msg) {
+      console.log(msg);
+    }
+
+    function clearBackground() {
+      ctx.clearRect(0, 0, joy.width, joy.height);
+      ctx.beginPath();
+      ctx.strokeStyle = "rgb(153,000,051)";
+      ctx.arc(100, 100, 90, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+
+    function drawCircle(x, y, r, c) {
+      ctx.beginPath();
+      ctx.fillStyle = c;
+      ctx.arc(x, y, r, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  </script>
+</div>
+</body>
+</html>
